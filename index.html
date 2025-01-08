@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="favicon-llmpicker.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Chat Interface</title>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+     <style>
+        .message-input {
+            min-height: 52px;
+            max-height: 200px;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+<!-- Inside your <head> or at the bottom of <body> -->
+    <style>
+      /* Provide a readable max width and spacing around the container */
+      .md-content {
+        max-width: 65ch;
+        margin: 0 auto;
+        padding: 1rem;
+        line-height: 1.6;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji",
+          "Segoe UI Emoji", "Segoe UI Symbol";
+      }
+
+      /* Headings */
+      .md-content h1 {
+        font-size: 1.875rem; /* ~30px */
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+      .md-content h2 {
+        font-size: 1.5rem; /* ~24px */
+        font-weight: 600;
+        margin-top: 1.75rem;
+        margin-bottom: 0.875rem;
+      }
+      .md-content h3 {
+        font-size: 1.25rem; /* ~20px */
+        font-weight: 600;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      /* Paragraphs & text */
+      .md-content p {
+        margin: 1rem 0;
+      }
+      .md-content strong {
+        font-weight: 600;
+      }
+      .md-content em {
+        font-style: italic;
+      }
+
+      /* Lists */
+      .md-content ul {
+        list-style-type: disc;
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .md-content ol {
+        list-style-type: decimal;
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .md-content li {
+        margin: 0.5rem 0;
+      }
+
+      /* Blockquotes */
+      .md-content blockquote {
+        border-left: 4px solid #ccc;
+        padding-left: 1rem;
+        color: #555;
+        margin: 1rem 0;
+      }
+
+      /* Tables */
+      .md-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+      }
+      .md-content th, .md-content td {
+        border: 1px solid #ccc;
+        padding: 0.5rem 1rem;
+        text-align: left;
+      }
+      .md-content thead {
+        background: #f5f5f5;
+      }
+      .md-content a {
+        color: #3182ce;  /* A nice blue color */
+        text-decoration: underline;
+        font-weight: 500;
+        transition: color 0.2s ease;
+      }
+
+      .md-content a:hover {
+        color: #2c5282;  /* Slightly darker blue on hover */
+        text-decoration: underline;
+      }
+      .hljs {
+        font-size: 0.85rem !important;  /* The !important ensures it overrides the existing styles */
+      }
+    </style>
+
+    <!-- Define the SVG copy-icon here, not outside the body-->
+    <svg style="display: none;" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 inline-block">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </symbol>
+    </svg>
+</head>
+<body class="bg-gray-100">
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('chat', () => ({
+                messages: [],
+                input: '',
+                providers: [],
+                selectedProvider: null,
+                models: [],
+                selectedModel: null,
+                isConnected: true,
+                isLoading: false,
+
+                async init() {
+                    await this.loadProviders();
+
+                    this.$watch('messages', () => {
+                        this.$nextTick(() => {
+                            //this.scrollToBottom();
+                        });
+                    });
+
+                    this.$watch('selectedProvider', async (value) => {
+                        if (value) {
+                            await this.loadModels(value);
+                        }
+                    });
+                },
+
+                async fetchProviders() {
+                    try {
+                        const response = await fetch('/llmpicker-backend/api/providers');
+                        return await response.json();
+                    } catch (error) {
+                        console.error('Failed to load providers:', error);
+                        this.isConnected = false;
+                        throw error;
+                    }
+                },
+                async fetchModels(provider) {
+                    try {
+                        const response = await fetch(`/llmpicker-backend/api/models/${provider}`);
+                        return await response.json();
+                    } catch (error) {
+                        console.error('Failed to load models:', error);
+                        throw error;
+                    }
+                },
+                async sendChatMessage(userInput) {
+                    try {
+                        const response = await fetch('/llmpicker-backend/api/chat', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                provider: this.selectedProvider,
+                                model: this.selectedModel,
+                                message: userInput
+                            })
+                        });
+                        return await response.json();
+                    } catch (error) {
+                        console.error('Failed to send message:', error);
+                        throw error;
+                    }
+                },
+
+                async loadProviders() {
+                    try {
+                        const data = await this.fetchProviders();
+                        this.providers = data.providers;
+                        if (this.providers.length > 0) {
+                            this.selectedProvider = this.providers[0];
+                        }
+                    } catch (error) {
+                        // Error handling already in fetchProviders
+                    }
+                },
+
+                async loadModels(provider) {
+                    try {
+                        const data = await this.fetchModels(provider);
+                        this.models = data.models;
+                        if (this.models.length > 0) {
+                            this.selectedModel = this.models[0];
+                        }
+                    } catch (error) {
+                        this.models = [];
+                        this.selectedModel = null;
+                    }
+                },
+
+                scrollToBottom() {
+                    const chatContainer = document.querySelector('#chat-container');
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                },
+
+                formatMessage(content) {
+                     // 1.  Parse the markdown content with marked.js
+                    let html = marked.parse(content);
+
+                    // 2.  Highlight code blocks
+                    html = html.replace(/<pre><code(?: class="language-(\w+)")?>(.*?)<\/code><\/pre>/gs, (match, lang, code) => {
+                         // Decode HTML entities within the code block
+                        const decodedCode = this.decodeHtmlEntities(code);
+
+                        let highlightedCode;
+                        if (lang && hljs.getLanguage(lang)) {
+                            highlightedCode = hljs.highlight(decodedCode, { language: lang }).value;
+                         } else {
+                              // If language is not specified or not supported, do not attempt to highlight
+                            highlightedCode = this.escapeHtml(decodedCode);
+                        }
+                        return `<pre><code class="hljs language-${lang || 'plaintext'}">${highlightedCode}</code></pre>`;
+                    });
+
+
+                    return html;
+                 },
+                escapeHtml(unsafe) {
+                    return unsafe
+                      .replace(/&/g, "&amp;")
+                      .replace(/</g, "&lt;")
+                      .replace(/>/g, "&gt;")
+                      .replace(/"/g, "&quot;")
+                      .replace(/'/g, "&#039;");
+
+                 },
+                decodeHtmlEntities(text) {
+                    const textarea = document.createElement('textarea');
+                    textarea.innerHTML = text;
+                    return textarea.value;
+                },
+
+                async sendMessage() {
+                    if (!this.input.trim() || !this.selectedProvider || !this.selectedModel) return;
+
+                    // Add user message
+                    this.messages.push({
+                        role: 'user',
+                        content: this.input,
+                        raw: true,
+                        model: this.selectedModel
+                    });
+                    const userInput = this.input;
+                    this.input = '';
+                    this.isLoading = true;
+
+                    // Scroll to loading spinner immediately
+                    this.$nextTick(() => {
+                        this.scrollToLoadingSpinner();
+                    });
+
+                    try {
+                        const data = await this.sendChatMessage(userInput);
+                        if (data && data.content) {
+                            // Manually construct a new assistant message object
+                            this.messages.push({
+                                role: 'assistant',
+                                content: data.content,
+                                // If your backend returns HTML/Markdown, set raw accordingly.
+                                // For safety, you can default to `false` so formatting is applied.
+                                raw: false,
+                                model: this.selectedModel
+                            });
+                        } else {
+                            throw new Error(data.error || 'Failed to get response');
+                        }
+                    } catch (error) {
+                        this.messages.push({
+                            role: 'assistant',
+                            content: `Error: ${error.message}`,
+                            model: this.selectedModel
+                        });
+                    } finally {
+                        this.isLoading = false;
+
+                        // Scroll to the top of the new response
+                        this.$nextTick(() => {
+                            this.scrollToLatestAssistantMessage();
+                        });
+                    }
+                },
+
+                scrollToLoadingSpinner() {
+                  this.$nextTick(() => {
+                    setTimeout(() => {
+                      const chatContainer = document.querySelector('#chat-container');
+                      const loadingSpinner = document.querySelector('#loading-spinner');
+                      if (loadingSpinner) {
+                        loadingSpinner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }, 0);
+                  });
+                },
+                scrollToLatestAssistantMessage() {
+                  this.$nextTick(() => {
+                    setTimeout(() => {
+                      const chatContainer = document.querySelector('#chat-container');
+                      const assistantMessages = chatContainer.querySelectorAll('[data-role="assistant"]');
+                      if (assistantMessages.length > 0) {
+                        const latest = assistantMessages[assistantMessages.length - 1];
+                        latest.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }, 0);
+                  });
+                },
+                handleKeydown(event) {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        this.sendMessage();
+                    }
+                },
+                copyToClipboard(text) {
+                    navigator.clipboard.writeText(text)
+                        .then(() => {
+                            // Optionally, provide user feedback (e.g., a tooltip)
+                            console.log('Copied to clipboard!');
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy text: ', err);
+                        });
+                },
+                getCodeBlocks(content) {
+                    const codeBlocks = [];
+                    const regex = /```(?:(\w+)\n)?([\s\S]*?)```/g;
+                    let match;
+                    while ((match = regex.exec(content)) !== null) {
+                       codeBlocks.push(match[2]);
+                    }
+                    return codeBlocks;
+                },
+                clearChat() {
+                    this.messages = [];
+                },
+            }));
+        });
+    </script>
+
+    <div x-data="chat" class="flex flex-col h-screen max-w-4xl mx-auto p-4">
+        <!-- Header with provider and model selectors -->
+        <div class="flex items-center justify-between mb-4 gap-4">
+            <div class="flex gap-4 flex-1">
+                <div class="relative flex-1">
+                    <select
+                        x-model="selectedProvider"
+                        class="w-full appearance-none bg-white border rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <template x-for="provider in providers" :key="provider">
+                            <option :value="provider" x-text="provider"></option>
+                        </template>
+                    </select>
+                    <div class="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="relative flex-1">
+                    <select
+                        x-model="selectedModel"
+                        class="w-full appearance-none bg-white border rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <template x-for="model in models" :key="model">
+                            <option :value="model" x-text="model"></option>
+                        </template>
+                    </select>
+                    <div class="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <button @click="clearChat" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Clear Chat</button>
+            <template x-if="!isConnected">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
+                    Not connected to backend. Check server status.
+                </div>
+            </template>
+        </div>
+
+        <!-- Chat messages -->
+        <div id="chat-container" class="flex-1 overflow-y-auto bg-gray-50 rounded-lg p-4 mb-4">
+            <template x-for="(message, index) in messages" :key="index">
+                <div
+                    :class="`mb-4 ${message.role === 'user' ? 'pl-4' : 'pl-0'}`"
+                    :data-role="message.role"
+                >
+                    <div :class="`p-4 rounded-lg relative ${message.role === 'user' ? 'bg-blue-100 ml-12' : 'bg-white border border-gray-200'}`">
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs text-gray-500 mb-1" x-text="message.role === 'user' ? 'You' : message.model"></div>
+                           <!--copy button for main message-->
+                            <button
+                                class="text-gray-500 hover:text-gray-700 focus:outline-none absolute top-2 right-2"
+                                @click="copyToClipboard(message.content)"
+                                title="Copy message"
+                            >
+                                <svg class="w-4 h-4 inline-block">
+                                   <use href="#copy-icon" />
+                                </svg>
+                            </button>
+
+                        </div>
+                        <div
+                            class="md-content"
+                            x-html="message.raw ? `<pre class='whitespace-pre-wrap'>${escapeHtml(message.content)}</pre>` : formatMessage(message.content)"
+                        ></div>
+                        <template x-if="message.role !== 'user'">
+                             <template x-for="(codeBlock, codeIndex) in getCodeBlocks(message.content)" :key="codeIndex">
+                                  <button
+                                     class="text-gray-500 hover:text-gray-700 focus:outline-none absolute top-2 right-8"
+                                      @click="copyToClipboard(codeBlock)"
+                                      title="Copy code"
+                                  >
+                                     <svg class="w-4 h-4 inline-block">
+                                        <use href="#copy-icon" />
+                                     </svg>
+                                 </button>
+                            </template>
+                         </template>
+
+                    </div>
+                </div>
+            </template>
+            <div x-show="isLoading" id="loading-spinner" class="flex items-center justify-center p-4">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+        </div>
+
+        <!-- Input form -->
+        <form @submit.prevent="sendMessage" class="flex items-end gap-2">
+            <div class="flex-1 relative">
+                <textarea
+                    x-model="input"
+                    @keydown="handleKeydown"
+                    placeholder="Type your message..."
+                    :disabled="isLoading"
+                    class="w-full resize-none overflow-hidden rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-3 pr-12 message-input disabled:bg-gray-100"
+                    rows="1"
+                ></textarea>
+            </div>
+            <button
+                type="submit"
+                :disabled="!input.trim() || isLoading || !selectedModel"
+                class="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                </svg>
+            </button>
+        </form>
+    </div>
+</body>
+</html>
+
+
