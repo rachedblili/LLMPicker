@@ -164,7 +164,30 @@
                 selectedModel: null,
                 isConnected: true,
                 isLoading: false,
+                modelColors: new Map(),
+                colorPalette: [
+                    'border-blue-300',
+                    'border-green-300',
+                    'border-orange-300',
+                    'border-purple-300',
+                    'border-pink-300',
+                    'border-teal-300',
+                    'border-red-300',
+                    'border-indigo-300',
+                    'border-yellow-300',
+                    'border-cyan-300'
+                ],
+                currentColorIndex: 0,
 
+                getModelColor(modelName) {
+                    if (!this.modelColors.has(modelName)) {
+                        // Assign next color in palette
+                        this.modelColors.set(modelName, this.colorPalette[this.currentColorIndex]);
+                        // Cycle through colors
+                        this.currentColorIndex = (this.currentColorIndex + 1) % this.colorPalette.length;
+                    }
+                    return this.modelColors.get(modelName);
+                },
                 async init() {
                     await this.loadProviders();
 
@@ -265,12 +288,12 @@
                             highlightedCode = this.escapeHtml(decodedCode);
                         }
 
-                        // Return code block with copy button
                         return `
                             <div class="relative group">
                                 <button
-                                    class="copy-button absolute top-2 right-2 bg-gray-700 bg-opacity-50 hover:bg-opacity-75 text-white p-1.5 rounded"
-                                    @click="copyToClipboard(\`${decodedCode}\`)"
+                                    class="absolute top-2 right-2 bg-gray-700 bg-opacity-50 hover:bg-opacity-75 text-white p-1.5 rounded copy-button"
+                                    onclick="copyCodeBlock(this)"
+                                    data-code="${this.escapeHtml(decodedCode)}"
                                     title="Copy to clipboard"
                                 >
                                     <svg class="w-4 h-4">
@@ -398,6 +421,8 @@
                 },
                 clearChat() {
                     this.messages = [];
+                    this.modelColors.clear();
+                    this.currentColorIndex = 0;
                 },
             }));
         });
@@ -454,7 +479,12 @@
                     :class="`mb-4 ${message.role === 'user' ? 'pl-4' : 'pl-0'}`"
                     :data-role="message.role"
                 >
-                    <div :class="`p-4 rounded-lg relative ${message.role === 'user' ? 'bg-blue-100 ml-12' : 'bg-white border border-gray-200'}`">
+                    <div :class="`p-4 rounded-lg relative ${
+                                                            message.role === 'user'
+                                                                ? 'bg-blue-100 ml-12'
+                                                                : 'bg-white border '+ getModelColor(message.model)
+                                                            }`"
+                    >
                         <!-- Message Metadata -->
                         <div class="flex justify-between items-center">
                             <div class="text-xs text-gray-500 mb-1" x-text="message.role === 'user' ? 'You' : message.model"></div>

@@ -17,6 +17,7 @@ aws_access_key = os.getenv("AWS_ACCESS_KEY")
 aws_access_secret = os.getenv("AWS_ACCESS_SECRET")
 
 client_functions = {
+    "choose" : None,
     "openai": lambda model: openai.OpenAI(api_key=openai_api_key, model=model, max_tokens=4096),
     "anthropic": lambda model: anthropic.Anthropic(api_key=anthropic_api_key, model=model, max_tokens=4096),
     "gemini": lambda model: gemini.Gemini(api_key=gemini_api_key, model=model, max_tokens=4096),
