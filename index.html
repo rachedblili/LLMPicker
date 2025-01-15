@@ -115,6 +115,13 @@
       .hljs {
         font-size: 0.85rem !important;  /* The !important ensures it overrides the existing styles */
       }
+      .copy-button {
+        display: none;
+      }
+      .group:hover .copy-button {
+        display: inline-block;
+      }
+
     </style>
 
     <!-- Define the SVG copy-icon here, not outside the body-->
@@ -124,6 +131,26 @@
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
       </symbol>
     </svg>
+    <script>
+        function copyCodeBlock(button) {
+            const code = button.getAttribute('data-code');
+            navigator.clipboard.writeText(code)
+                .then(() => {
+                    // Optional: Show feedback
+                    const originalTitle = button.getAttribute('title');
+                    button.setAttribute('title', 'Copied!');
+                    button.classList.add('bg-green-700');
+                    setTimeout(() => {
+                        button.setAttribute('title', originalTitle);
+                        button.classList.remove('bg-green-700');
+                    }, 1000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    button.setAttribute('title', 'Failed to copy');
+                });
+        }
+    </script>
 </head>
 <body class="bg-gray-100">
     <script>
@@ -224,27 +251,38 @@
                 },
 
                 formatMessage(content) {
-                     // 1.  Parse the markdown content with marked.js
+                    // Parse Markdown
                     let html = marked.parse(content);
 
-                    // 2.  Highlight code blocks
+                    // Wrap code blocks with copy button
                     html = html.replace(/<pre><code(?: class="language-(\w+)")?>(.*?)<\/code><\/pre>/gs, (match, lang, code) => {
-                         // Decode HTML entities within the code block
                         const decodedCode = this.decodeHtmlEntities(code);
 
                         let highlightedCode;
                         if (lang && hljs.getLanguage(lang)) {
                             highlightedCode = hljs.highlight(decodedCode, { language: lang }).value;
-                         } else {
-                              // If language is not specified or not supported, do not attempt to highlight
+                        } else {
                             highlightedCode = this.escapeHtml(decodedCode);
                         }
-                        return `<pre><code class="hljs language-${lang || 'plaintext'}">${highlightedCode}</code></pre>`;
+
+                        // Return code block with copy button
+                        return `
+                            <div class="relative group">
+                                <button
+                                    class="copy-button absolute top-2 right-2 bg-gray-700 bg-opacity-50 hover:bg-opacity-75 text-white p-1.5 rounded"
+                                    @click="copyToClipboard(\`${decodedCode}\`)"
+                                    title="Copy to clipboard"
+                                >
+                                    <svg class="w-4 h-4">
+                                        <use href="#copy-icon"></use>
+                                    </svg>
+                                </button>
+                                <pre><code class="hljs language-${lang || 'plaintext'}">${highlightedCode}</code></pre>
+                            </div>`;
                     });
 
-
                     return html;
-                 },
+                },
                 escapeHtml(unsafe) {
                     return unsafe
                       .replace(/&/g, "&amp;")
@@ -417,41 +455,21 @@
                     :data-role="message.role"
                 >
                     <div :class="`p-4 rounded-lg relative ${message.role === 'user' ? 'bg-blue-100 ml-12' : 'bg-white border border-gray-200'}`">
+                        <!-- Message Metadata -->
                         <div class="flex justify-between items-center">
                             <div class="text-xs text-gray-500 mb-1" x-text="message.role === 'user' ? 'You' : message.model"></div>
-                           <!--copy button for main message-->
-                            <button
-                                class="text-gray-500 hover:text-gray-700 focus:outline-none absolute top-2 right-2"
-                                @click="copyToClipboard(message.content)"
-                                title="Copy message"
-                            >
-                                <svg class="w-4 h-4 inline-block">
-                                   <use href="#copy-icon" />
-                                </svg>
-                            </button>
-
                         </div>
+                        <!-- Render Message Content -->
                         <div
                             class="md-content"
-                            x-html="message.raw ? `<pre class='whitespace-pre-wrap'>${escapeHtml(message.content)}</pre>` : formatMessage(message.content)"
+                            x-html="message.raw
+                                ? `<pre class='whitespace-pre-wrap'>${escapeHtml(message.content)}</pre>`
+                                : formatMessage(message.content)"
                         ></div>
-                        <template x-if="message.role !== 'user'">
-                             <template x-for="(codeBlock, codeIndex) in getCodeBlocks(message.content)" :key="codeIndex">
-                                  <button
-                                     class="text-gray-500 hover:text-gray-700 focus:outline-none absolute top-2 right-8"
-                                      @click="copyToClipboard(codeBlock)"
-                                      title="Copy code"
-                                  >
-                                     <svg class="w-4 h-4 inline-block">
-                                        <use href="#copy-icon" />
-                                     </svg>
-                                 </button>
-                            </template>
-                         </template>
-
                     </div>
                 </div>
             </template>
+
             <div x-show="isLoading" id="loading-spinner" class="flex items-center justify-center p-4">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             </div>
