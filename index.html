@@ -3,14 +3,14 @@
 <head>
     <link rel="icon" href="favicon-llmpicker.png" type="image/png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LLM Chat Interface</title>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-     <style>
+    <style>
         .message-input {
             min-height: 52px;
             max-height: 200px;
@@ -19,9 +19,6 @@
             white-space: pre-wrap;
             word-wrap: break-word;
         }
-    </style>
-<!-- Inside your <head> or at the bottom of <body> -->
-    <style>
       /* Provide a readable max width and spacing around the container */
       .md-content {
         max-width: 65ch;
@@ -428,11 +425,11 @@
         });
     </script>
 
-    <div x-data="chat" class="flex flex-col h-screen max-w-4xl mx-auto p-4">
+    <div x-data="chat" class="flex flex-col h-screen max-w-4xl mx-auto p-4 sm:p-4 md:p-6">
         <!-- Header with provider and model selectors -->
-        <div class="flex items-center justify-between mb-4 gap-4">
-            <div class="flex gap-4 flex-1">
-                <div class="relative flex-1">
+        <div class="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
+            <div class="flex flex-col sm:flex-row gap-4 w-full mb-2 sm:mb-0">
+                <div class="relative flex-1 w-full">
                     <select
                         x-model="selectedProvider"
                         class="w-full appearance-none bg-white border rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -448,7 +445,7 @@
                     </div>
                 </div>
 
-                <div class="relative flex-1">
+                <div class="relative flex-1 w-full">
                     <select
                         x-model="selectedModel"
                         class="w-full appearance-none bg-white border rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -464,12 +461,14 @@
                     </div>
                 </div>
             </div>
-            <button @click="clearChat" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Clear Chat</button>
-            <template x-if="!isConnected">
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
-                    Not connected to backend. Check server status.
-                </div>
-            </template>
+            <div class="flex items-center space-x-2 w-full sm:w-auto">
+                <button @click="clearChat" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Clear Chat</button>
+                <template x-if="!isConnected">
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
+                        Not connected to backend. Check server status.
+                    </div>
+                </template>
+            </div>
         </div>
 
         <!-- Chat messages -->
@@ -506,8 +505,8 @@
         </div>
 
         <!-- Input form -->
-        <form @submit.prevent="sendMessage" class="flex items-end gap-2">
-            <div class="flex-1 relative">
+        <form @submit.prevent="sendMessage" class="flex flex-col sm:flex-row items-end gap-2">
+            <div class="flex-1 relative w-full">
                 <textarea
                     x-model="input"
                     @keydown="handleKeydown"
@@ -520,7 +519,7 @@
             <button
                 type="submit"
                 :disabled="!input.trim() || isLoading || !selectedModel"
-                class="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                class="w-full sm:w-auto p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>

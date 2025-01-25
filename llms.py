@@ -15,6 +15,7 @@ groq_api_key = os.getenv("GROQ_API_KEY")
 sambanova_api_key = os.getenv("SAMBANOVA_API_KEY")
 aws_access_key = os.getenv("AWS_ACCESS_KEY")
 aws_access_secret = os.getenv("AWS_ACCESS_SECRET")
+deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
 
 client_functions = {
     "choose" : None,
@@ -26,7 +27,9 @@ client_functions = {
                                                           aws_secret_access_key=aws_access_secret,
                                                           region_name="us-east-1",model=model, max_tokens=4096),
     "sambanova": lambda model: openai_like.OpenAILike(api_base="https://api.sambanova.ai/v1/",
-                                                      api_key=sambanova_api_key, model=model, max_tokens=3072)
+                                                      api_key=sambanova_api_key, model=model, max_tokens=3072),
+    "deepseek": lambda model: openai_like.OpenAILike(api_base="https://api.deepseek.com", is_chat_model=True,
+                                                    api_key=deepseek_api_key, model=model, max_tokens=4096)
 }
 
 

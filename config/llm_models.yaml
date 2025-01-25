@@ -38,3 +38,8 @@ llm_providers:
       - Meta-Llama-3.1-8B-Instruct-16k
       - Meta-Llama-3.2-3B-Instruct
 
+  deepseek:
+    models:
+      - deepseek-chat
+      - deepseek-reasoner
+
