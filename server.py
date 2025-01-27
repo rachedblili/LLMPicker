@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.chat_engine import SimpleChatEngine
+from llama_index.core.text_splitter import TokenTextSplitter
+from llama_index.core.types import ChatMessage, MessageRole
 import llms
 from flask_shield import FlaskShield
 
@@ -21,12 +23,12 @@ shield = FlaskShield(
 active_clients = {}
 
 def create_chat_engine_from_client(llm):
-    memory = ChatMemoryBuffer.from_defaults(token_limit=3900)
+    memory = ChatMemoryBuffer.from_defaults(token_limit=65536)
     chat_engine = SimpleChatEngine.from_defaults(
         llm=llm,
         memory=memory
     )
-    return(chat_engine)
+    return chat_engine,memory
 
 @app.route('/api/providers', methods=['GET'])
 def get_providers():
@@ -58,13 +60,21 @@ def chat():
         client_key = f"{provider}_{model}"
         if client_key not in active_clients:
             client_fn = llms.client_functions[provider]
-            chat_engine = create_chat_engine_from_client(client_fn(model))
-            active_clients[client_key] = chat_engine
+            chat_engine,memory = create_chat_engine_from_client(client_fn(model))
+            active_clients[client_key] = {"client": chat_engine, "memory": memory}  # Store the chat_engine
         
         # Get response from LLM
-        client = active_clients[client_key]
-        response = client.chat(message)
-        
+        client = active_clients[client_key]["client"]
+        memory = active_clients[client_key]["memory"]
+        text_splitter = TokenTextSplitter(chunk_size=2048, chunk_overlap=0)
+        chunks = text_splitter.split_text(message)
+        # Loop through all but the last chunk
+        for chunk in chunks[:-1]:
+            memory.put(ChatMessage(role=MessageRole.USER, content=chunk))
+        chat_history = memory.get()
+
+        response = client.chat(chunks[-1], chat_history=chat_history)
+
         return jsonify({
             "role": "assistant",
             "content": str(response)
