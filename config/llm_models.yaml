@@ -26,15 +26,15 @@ llm_providers:
       - us.amazon.nova-micro-v1:0
   groq:
     models:
-      - llama-3.1-70b-versatile
-      - llama-3.1-8b-instant
+      - llama-3.3-70b-versatile
+      - llama-3.3-8b-instant
       - llama-3.2-3b-preview
       - mixtral-8x7b-32768
 
   sambanova:
     models:
-      - Meta-Llama-3.1-405B-Instruct-8k
-      - Meta-Llama-3.1-70B-Instruct-16k
+      - Meta-Llama-3.1-405B-Instruct-16k
+      - Meta-Llama-3.1-70B-Instruct-128k
       - Meta-Llama-3.1-8B-Instruct-16k
       - Meta-Llama-3.2-3B-Instruct
 

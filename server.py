@@ -11,6 +11,8 @@ from flask_shield import FlaskShield
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
+CONTEXT_SIZE = 65536
+
 # Initialize with tokens and allowed IPs
 shield = FlaskShield(
     app,
@@ -23,7 +25,7 @@ shield = FlaskShield(
 active_clients = {}
 
 def create_chat_engine_from_client(llm):
-    memory = ChatMemoryBuffer.from_defaults(token_limit=65536)
+    memory = ChatMemoryBuffer.from_defaults(token_limit=CONTEXT_SIZE)
     chat_engine = SimpleChatEngine.from_defaults(
         llm=llm,
         memory=memory
