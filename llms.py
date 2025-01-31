@@ -16,6 +16,7 @@ sambanova_api_key = os.getenv("SAMBANOVA_API_KEY")
 aws_access_key = os.getenv("AWS_ACCESS_KEY")
 aws_access_secret = os.getenv("AWS_ACCESS_SECRET")
 deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
+qwen_api_key = os.getenv("QWEN_API_KEY")
 
 client_functions = {
     "choose" : None,
@@ -29,7 +30,9 @@ client_functions = {
     "sambanova": lambda model: openai_like.OpenAILike(api_base="https://api.sambanova.ai/v1/",
                                                       api_key=sambanova_api_key, model=model, max_tokens=3072),
     "deepseek": lambda model: openai_like.OpenAILike(api_base="https://api.deepseek.com", is_chat_model=True,
-                                                    api_key=deepseek_api_key, model=model, max_tokens=4096)
+                                                    api_key=deepseek_api_key, model=model, max_tokens=4096),
+    "alibaba": lambda model: openai_like.OpenAILike(api_base="https://dashscope-intl.aliyuncs.com/compatible-mode/v1", is_chat_model=True,
+                                                    api_key=qwen_api_key, model=model, max_tokens=4096)
 }
 
 

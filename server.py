@@ -84,6 +84,25 @@ def chat():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/clear_chat', methods=['POST'])
+def clear_chat():
+    data = request.json
+    if not data or 'provider' not in data or 'model' not in data:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    provider = data['provider']
+    model = data['model']
+
+    client_key = f"{provider}_{model}"
+
+    if client_key in active_clients:
+        # Clear the memory for the specific client
+        active_clients[client_key]["memory"].reset()
+        return jsonify({"message": f"Chat history cleared for {provider} - {model}"})
+    else:
+        return jsonify({"error": f"No active session found for {provider} - {model}"}), 404
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5555)
 

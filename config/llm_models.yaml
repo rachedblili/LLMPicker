@@ -43,3 +43,9 @@ llm_providers:
       - deepseek-chat
       - deepseek-reasoner
 
+  alibaba:
+    models:
+      - qwen-max
+      - qwen-plus
+      - qwen-turbo
+
