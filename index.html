@@ -321,6 +321,18 @@
                 async sendMessage() {
                     if (!this.input.trim() || !this.selectedProvider || !this.selectedModel) return;
 
+                    // Check if the current model is different from the last message's model
+                    const lastMessage = this.messages[this.messages.length - 1];
+                    const currentModel = this.selectedModel;
+
+                    if (!lastMessage || lastMessage.model !== currentModel) {
+                        this.messages.push({
+                            role: 'system',
+                            content: `Model switched to "${currentModel}"`,
+                            model: currentModel
+                        });
+                    }
+
                     // Add user message
                     this.messages.push({
                         role: 'user',
@@ -438,7 +450,12 @@
                         const result = await response.json();
 
                         if (response.ok) {
-                            alert(result.message || 'Chat history cleared successfully.');
+                            // Add a system message instead of an alert
+                            this.messages.push({
+                                role: 'system',
+                                content: `Chat history cleared for model "${this.selectedModel}"`,
+                                model: this.selectedModel
+                            });
                         } else {
                             // Handle error response
                             throw new Error(result.error || 'Failed to clear chat history.');
@@ -503,26 +520,48 @@
         <div id="chat-container" class="flex-1 overflow-y-auto bg-gray-50 rounded-lg p-4 mb-4">
             <template x-for="(message, index) in messages" :key="index">
                 <div
-                    :class="`mb-4 ${message.role === 'user' ? 'pl-4' : 'pl-0'}`"
+                    :class="`mb-4 ${
+                        message.role === 'user' ? 'pl-4' :
+                        message.role === 'system' ? 'text-center' : 'pl-0'
+                    }`"
                     :data-role="message.role"
                 >
-                    <div :class="`p-4 rounded-lg relative ${
-                                                            message.role === 'user'
-                                                                ? 'bg-blue-100 ml-12'
-                                                                : 'bg-white border '+ getModelColor(message.model)
-                                                            }`"
+                    <div
+                        :class="`${
+                            message.role === 'system'
+                                ? 'flex items-center justify-center space-x-2 py-2'
+                                : 'p-4 rounded-lg relative ' + (
+                                    message.role === 'user'
+                                        ? 'bg-blue-100 ml-12'
+                                        : 'bg-white border ' + getModelColor(message.model)
+                                )
+                        }`"
                     >
-                        <!-- Message Metadata -->
-                        <div class="flex justify-between items-center">
-                            <div class="text-xs text-gray-500 mb-1" x-text="message.role === 'user' ? 'You' : message.model"></div>
-                        </div>
-                        <!-- Render Message Content -->
-                        <div
-                            class="md-content"
-                            x-html="message.raw
-                                ? `<pre class='whitespace-pre-wrap'>${escapeHtml(message.content)}</pre>`
-                                : formatMessage(message.content)"
-                        ></div>
+                        <template x-if="message.role === 'system'">
+                            <div class="flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="text-sm text-gray-500" x-text="message.content"></span>
+                            </div>
+                        </template>
+
+                        <template x-if="message.role !== 'system'">
+                            <div>
+                                <template x-if="message.role !== 'system'">
+                                    <div class="flex justify-between items-center">
+                                        <div class="text-xs text-gray-500 mb-1" x-text="message.role === 'user' ? 'You' : message.model"></div>
+                                    </div>
+                                </template>
+
+                                <div
+                                    class="md-content"
+                                    x-html="message.raw
+                                        ? `<pre class='whitespace-pre-wrap'>${escapeHtml(message.content)}</pre>`
+                                        : formatMessage(message.content)"
+                                ></div>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </template>
