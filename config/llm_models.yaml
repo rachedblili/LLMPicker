@@ -2,6 +2,7 @@ llm_providers:
   openai:
     models:
       - gpt-4o
+      - o3-mini
       - gpt-4o-mini
       - gpt-4-turbo
 
