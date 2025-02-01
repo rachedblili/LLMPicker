@@ -20,19 +20,21 @@ qwen_api_key = os.getenv("QWEN_API_KEY")
 
 client_functions = {
     "choose" : None,
-    "openai": lambda model: openai.OpenAI(api_key=openai_api_key, model=model ),
-    "anthropic": lambda model: anthropic.Anthropic(api_key=anthropic_api_key, model=model ),
-    "gemini": lambda model: gemini.Gemini(api_key=gemini_api_key, model=model ),
-    "groq": lambda model: groq.Groq(api_key=groq_api_key, model=model ),
+    "openai": lambda model: openai.OpenAI(api_key=openai_api_key, model=model, max_tokens=4096),
+    "anthropic": lambda model: anthropic.Anthropic(api_key=anthropic_api_key, model=model, max_tokens=4096),
+    "gemini": lambda model: gemini.Gemini(api_key=gemini_api_key, model=model, max_tokens=4096),
+    "groq": lambda model: groq.Groq(api_key=groq_api_key, model=model, max_tokens=4096),
     "aws": lambda model: bedrock_converse.BedrockConverse(aws_access_key_id=aws_access_key,
                                                           aws_secret_access_key=aws_access_secret,
-                                                          region_name="us-east-1",model=model ),
+                                                          region_name="us-east-1",model=model, max_tokens=4096),
     "sambanova": lambda model: openai_like.OpenAILike(api_base="https://api.sambanova.ai/v1/",
-                                                      api_key=sambanova_api_key, model=model),
+                                                      api_key=sambanova_api_key, model=model, max_tokens=2048),
     "deepseek": lambda model: openai_like.OpenAILike(api_base="https://api.deepseek.com", is_chat_model=True,
-                                                    api_key=deepseek_api_key, model=model ),
-    "alibaba": lambda model: openai_like.OpenAILike(api_base="https://dashscope-intl.aliyuncs.com/compatible-mode/v1", is_chat_model=True,
-                                                    api_key=qwen_api_key, model=model )
+                                                    api_key=deepseek_api_key, model=model, max_tokens=4096),
+    "alibaba": lambda model: openai_like.OpenAILike(api_base="https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+                                                    is_chat_model=True, api_key=qwen_api_key, model=model,
+                                                    max_tokens=4096)
+
 }
 
 
