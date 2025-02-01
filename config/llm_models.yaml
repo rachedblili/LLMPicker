@@ -3,6 +3,7 @@ llm_providers:
     models:
       - gpt-4o
       - o3-mini
+      - o1-mini
       - gpt-4o-mini
       - gpt-4-turbo
 
