@@ -31,7 +31,7 @@ Before you begin, ensure you have the following installed:
 
 ```bash
 git clone https://github.com/rachedblili/LLMPicker
-cd llm-picker
+cd LLMPicker
 ```
 
 ### 2. Set Up Python Environment
