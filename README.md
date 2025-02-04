@@ -21,7 +21,7 @@ LLM Picker is a flexible, multi-provider chat interface that allows users to int
 
 Before you begin, ensure you have the following installed:
 
-- Python 3.9+
+- Python 3.12+
 - pip
 - API keys for desired LLM providers
 
