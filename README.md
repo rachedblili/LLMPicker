@@ -47,9 +47,15 @@ pip install -r requirements.txt
 Create a file named `.env` in the project directory and add your API keys for each LLM provider. For example:
 
 ```bash
-OPENAI_API_KEY=your_openai_api_key
-ANTHROPIC_API_KEY=your_anthropic_api_key
-GEMINI_API_KEY=your_gemini_api_key
+OPENAI_API_KEY="your_key"
+SAMBANOVA_API_KEY="your_key"
+GEMINI_API_KEY="your_key"
+GROQ_API_KEY="your_key"
+ANTHROPIC_API_KEY="your_key"
+AWS_ACCESS_KEY="your_key"
+AWS_ACCESS_SECRET="your_secret"
+DEEPSEEK_API_KEY="your_key"
+QWEN_API_KEY="your_key"
 ```
 
 ### 4. Configure Frontend
