@@ -1,5 +1,5 @@
 from llama_index.llms import openai, anthropic,gemini, groq, openai_like, bedrock_converse
-
+from typing import List
 import time
 from config import get_config
 import os
@@ -38,10 +38,10 @@ client_functions = {
 }
 
 
-def list_providers():
+def list_providers() -> List[str]:
     return list(client_functions.keys())
 
 
-def list_models(provider):
+def list_models(provider: str) -> List[str]:
     models = get_config()["llm_providers"][provider]["models"]
     return models

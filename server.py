@@ -4,10 +4,12 @@ from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.chat_engine import SimpleChatEngine
 from llama_index.core.text_splitter import TokenTextSplitter
 from llama_index.core.types import ChatMessage, MessageRole
+import logging
 import llms
 from flask_shield import FlaskShield
 
-
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s: %(message)s')
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
@@ -25,12 +27,16 @@ shield = FlaskShield(
 active_clients = {}
 
 def create_chat_engine_from_client(llm):
-    memory = ChatMemoryBuffer.from_defaults(token_limit=CONTEXT_SIZE)
-    chat_engine = SimpleChatEngine.from_defaults(
-        llm=llm,
-        memory=memory
-    )
-    return chat_engine,memory
+    try:
+        memory = ChatMemoryBuffer.from_defaults(token_limit=CONTEXT_SIZE)
+        chat_engine = SimpleChatEngine.from_defaults(
+            llm=llm,
+            memory=memory
+        )
+        return chat_engine, memory
+    except Exception as e:
+        logging.error(f"Failed to create chat engine: {e}")
+        raise
 
 @app.route('/api/providers', methods=['GET'])
 def get_providers():

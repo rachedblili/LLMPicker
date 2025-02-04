@@ -203,7 +203,7 @@
 
                 async fetchProviders() {
                     try {
-                        const response = await fetch('/llmpicker-backend/api/providers');
+                        const response = await fetch('${BACKEND_CONFIG.BASE_URL}/llmpicker-backend/api/providers');
                         return await response.json();
                     } catch (error) {
                         console.error('Failed to load providers:', error);
@@ -213,7 +213,7 @@
                 },
                 async fetchModels(provider) {
                     try {
-                        const response = await fetch(`/llmpicker-backend/api/models/${provider}`);
+                        const response = await fetch(`${BACKEND_CONFIG.BASE_URL}/llmpicker-backend/api/models/${provider}`);
                         return await response.json();
                     } catch (error) {
                         console.error('Failed to load models:', error);
@@ -222,7 +222,7 @@
                 },
                 async sendChatMessage(userInput) {
                     try {
-                        const response = await fetch('/llmpicker-backend/api/chat', {
+                        const response = await fetch('${BACKEND_CONFIG.BASE_URL}/llmpicker-backend/api/chat', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -436,7 +436,7 @@
 
                     try {
                         // Send a POST request to the /api/clear_chat endpoint
-                        const response = await fetch('/llmpicker-backend/api/clear_chat', {
+                        const response = await fetch('${BACKEND_CONFIG.BASE_URL}/llmpicker-backend/api/clear_chat', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
