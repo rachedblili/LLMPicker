@@ -63,22 +63,7 @@ const BACKEND_CONFIG = {
 };
 ```
 
-### 5. Configure Allowed IPs (Optional)
-
-If you are planning to run this locally on your machine (recommended) then you probably don't need to do this step.
-However, if you are planning to run this on a server, you might want to add your IP address to the list of allowed IPs.
-Edit `server.py` and modify the `allowed_ips` list to include your IP address or network.
-
-```python
-shield = FlaskShield(
-    app,
-    allowed_ips=['127.0.0.1/32', 'your_ip/32'],
-    trust_proxy=True,
-    require_token=False
-)
-```
-
-### 6. Run the Application
+### 5. Run the Application
 
 ```bash
 python server.py

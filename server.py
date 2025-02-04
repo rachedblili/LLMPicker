@@ -6,7 +6,6 @@ from llama_index.core.text_splitter import TokenTextSplitter
 from llama_index.core.types import ChatMessage, MessageRole
 import logging
 import llms
-from flask_shield import FlaskShield
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s: %(message)s')
@@ -14,14 +13,6 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 CONTEXT_SIZE = 65536
-
-# Initialize with tokens and allowed IPs
-shield = FlaskShield(
-    app,
-    allowed_ips=['107.174.92.131/32','67.169.42.77/32'],
-    trust_proxy=True,
-    require_token=False
-)
 
 # Store active LLM clients
 active_clients = {}
