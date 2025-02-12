@@ -67,6 +67,7 @@ There are two ways to use LLM Picker: Standalone or as a Flask app.
 
 #### Standalone
 Simply run the streamlit UI using `streamlit run streamlit_ui.py`
+
 A browser window should open up and you can just get started.
 
 #### Flask
