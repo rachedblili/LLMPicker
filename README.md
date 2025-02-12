@@ -17,6 +17,8 @@ LLM Picker is a flexible, multi-provider chat interface that allows users to int
   - Maintains context across conversations
 - 🚀 Lightweight and Fast
   - Built with Flask (Python) and Alpine.js
+- 🎨 Customizable UI
+  - Can choose between the standalone Streamlit UI or a client-server based Flask app and UI
 
 ## Prerequisites
 
