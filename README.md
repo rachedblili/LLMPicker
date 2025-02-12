@@ -58,8 +58,20 @@ DEEPSEEK_API_KEY="your_key"
 QWEN_API_KEY="your_key"
 ```
 
-### 4. Configure Frontend
+### 4. Configure Available LLM Providers
+Modify config/llm_models.yaml to add or remove LLM providers and models.  It's important to make sure that only 
+providers for which you have API keys are included.
 
+### 5. Run the Application
+There are two ways to use LLM Picker: Standalone or as a Flask app.
+
+#### Standalone
+Simply run the streamlit UI using `streamlit run streamlit_ui.py`
+A browser window should open up and you can just get started.
+
+#### Flask
+
+##### Set up the front-end
 Modify the `config/frontend-config.js` file to match your backend server URL.
 
 ```javascript
@@ -69,18 +81,11 @@ const BACKEND_CONFIG = {
 };
 ```
 
-### 5. Run the Application
+##### Start the backend server
 
 ```bash
 python server.py
 ```
-
-## Configuration
-
-### LLM Providers
-
-Modify config/llm_models.yaml to add or remove LLM providers and models.  It's important to make sure that only 
-providers for which you have API keys are included.
 
 ## Troubleshooting
 

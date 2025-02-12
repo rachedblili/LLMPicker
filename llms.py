@@ -19,7 +19,6 @@ deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
 qwen_api_key = os.getenv("QWEN_API_KEY")
 
 client_functions = {
-    "choose" : None,
     "openai": lambda model: openai.OpenAI(api_key=openai_api_key, model=model, max_tokens=4096),
     "anthropic": lambda model: anthropic.Anthropic(api_key=anthropic_api_key, model=model, max_tokens=4096),
     "gemini": lambda model: gemini.Gemini(api_key=gemini_api_key, model=model, max_tokens=4096),
