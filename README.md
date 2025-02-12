@@ -4,7 +4,8 @@
 
 LLM Picker is a flexible, multi-provider chat interface that allows users to interact with various Large Language Models (LLMs) from different providers such as OpenAI, Anthropic, Google Gemini, AWS Bedrock, Groq, and more.
 
-![LLM Picker Screenshot](screenshot.png) <!-- You'll want to add an actual screenshot -->
+![LLM Picker Screenshot](screenshot.png) 
+![Streamlit UI Screenshot](streamlit-screenshot.png)
 
 ## Features
 
