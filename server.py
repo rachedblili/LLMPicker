@@ -65,7 +65,7 @@ def chat():
         # Get response from LLM
         client = active_clients[client_key]["client"]
         memory = active_clients[client_key]["memory"]
-        text_splitter = TokenTextSplitter(chunk_size=2048, chunk_overlap=0)
+        text_splitter = TokenTextSplitter(chunk_size=2048, chunk_overlap=0, keep_whitespaces=True)
         chunks = text_splitter.split_text(message)
         # Loop through all but the last chunk
         for chunk in chunks[:-1]:
